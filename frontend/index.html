@@ -609,6 +609,9 @@
             <button class="btn btn-outline-light btn-sm py-0 px-2" onclick="toggleSound()">
                 <i class="bi bi-volume-up" id="soundIcon"></i>
             </button>
+            <button class="btn btn-outline-light btn-sm py-0 px-2" onclick="openManage()">
+                <i class="bi bi-gear"></i>
+            </button>
         </div>
     </nav>
 
@@ -789,6 +792,34 @@
             <button class="btn-custom danger" onclick="closeAlarmModal()">
                 <i class="bi bi-check-lg"></i> 我知道了
             </button>
+        </div>
+    </div>
+
+    <!-- 管理弹窗 -->
+    <div class="alarm-modal" id="manageModal">
+        <div class="alarm-modal-content" style="max-width: 900px; max-height: 85vh;">
+            <div class="alarm-icon" style="color: var(--primary-color);">
+                <i class="bi bi-gear-fill"></i>
+            </div>
+            <div class="alarm-title" style="color: var(--primary-color);">摄像头管理</div>
+            
+            <div style="margin-bottom: 1rem;">
+                <button class="btn btn-success btn-sm" onclick="addCamera()">
+                    <i class="bi bi-plus-circle"></i> 添加摄像头
+                </button>
+            </div>
+            
+            <div id="manageCameraList" style="max-height: 400px; overflow-y: auto;">
+            </div>
+            
+            <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="btn-custom" onclick="saveManage()">
+                    <i class="bi bi-check-lg"></i> 保存
+                </button>
+                <button class="btn-custom" onclick="closeManage()" style="background: #666;">
+                    <i class="bi bi-x-lg"></i> 取消
+                </button>
+            </div>
         </div>
     </div>
 
@@ -1081,6 +1112,94 @@
         // 关闭告警弹窗
         function closeAlarmModal() {
             document.getElementById('alarmModal').classList.remove('active');
+        }
+
+        // 打开管理弹窗
+        function openManage() {
+            renderManageList();
+            document.getElementById('manageModal').classList.add('active');
+        }
+
+        // 关闭管理弹窗
+        function closeManage() {
+            document.getElementById('manageModal').classList.remove('active');
+        }
+
+        // 渲染管理列表
+        function renderManageList() {
+            const list = document.getElementById('manageCameraList');
+            list.innerHTML = cameras.map((cam, index) => `
+                <div class="info-card" style="margin-bottom: 0.5rem; padding: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <span style="font-weight: bold; min-width: 30px;">${cam.id}</span>
+                        <input type="text" class="form-control form-control-sm" style="width: 120px;" 
+                               id="cam_name_${cam.id}" value="${cam.name}" placeholder="名称">
+                        <input type="text" class="form-control form-control-sm" style="width: 150px;" 
+                               id="cam_location_${cam.id}" value="${cam.location}" placeholder="位置">
+                        <select class="form-control form-control-sm" style="width: 100px;" 
+                                id="cam_analyze_${cam.id}">
+                            <option value="discharge" ${cam.analyze_type === 'discharge' ? 'selected' : ''}>出料检测</option>
+                            <option value="general" ${cam.analyze_type === 'general' ? 'selected' : ''}>通用监控</option>
+                        </select>
+                        <select class="form-control form-control-sm" style="width: 80px;" 
+                                id="cam_alarm_${cam.id}">
+                            <option value="true" ${cam.alarm_enabled ? 'selected' : ''}>告警</option>
+                            <option value="false" ${!cam.alarm_enabled ? 'selected' : ''}>不告警</option>
+                        </select>
+                        <input type="number" class="form-control form-control-sm" style="width: 70px;" 
+                               id="cam_channel_${cam.id}" value="${cam.rtsp_channel}" placeholder="通道">
+                        <button class="btn btn-danger btn-sm" onclick="deleteCamera(${cam.id})">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 添加摄像头
+        function addCamera() {
+            const newId = cameras.length > 0 ? Math.max(...cameras.map(c => c.id)) + 1 : 1;
+            cameras.push({
+                id: newId,
+                name: "新摄像头",
+                location: "新位置",
+                rtsp_channel: newId,
+                analyze_type: "general",
+                alarm_enabled: false,
+                status: "online",
+                alarm_status: "normal"
+            });
+            renderManageList();
+        }
+
+        // 删除摄像头
+        function deleteCamera(cameraId) {
+            if (confirm('确定要删除这个摄像头吗？')) {
+                cameras = cameras.filter(c => c.id !== cameraId);
+                renderManageList();
+            }
+        }
+
+        // 保存管理
+        function saveManage() {
+            cameras.forEach(cam => {
+                const nameInput = document.getElementById('cam_name_' + cam.id);
+                const locationInput = document.getElementById('cam_location_' + cam.id);
+                const analyzeInput = document.getElementById('cam_analyze_' + cam.id);
+                const alarmInput = document.getElementById('cam_alarm_' + cam.id);
+                const channelInput = document.getElementById('cam_channel_' + cam.id);
+                
+                if (nameInput) cam.name = nameInput.value;
+                if (locationInput) cam.location = locationInput.value;
+                if (analyzeInput) cam.analyze_type = analyzeInput.value;
+                if (alarmInput) cam.alarm_enabled = alarmInput.value === 'true';
+                if (channelInput) cam.rtsp_channel = parseInt(channelInput.value);
+            });
+            
+            renderCameraGrid();
+            renderCameraList();
+            updateStats();
+            closeManage();
         }
 
         // 播放告警声音
