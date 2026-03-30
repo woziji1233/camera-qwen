@@ -609,6 +609,9 @@
             <button class="btn btn-outline-light btn-sm py-0 px-2" onclick="toggleSound()">
                 <i class="bi bi-volume-up" id="soundIcon"></i>
             </button>
+            <button class="btn btn-outline-light btn-sm py-0 px-2" onclick="openChat()">
+                <i class="bi bi-chat-dots"></i>
+            </button>
             <button class="btn btn-outline-light btn-sm py-0 px-2" onclick="openManage()">
                 <i class="bi bi-gear"></i>
             </button>
@@ -819,6 +822,41 @@
                 <button class="btn-custom" onclick="closeManage()" style="background: #666;">
                     <i class="bi bi-x-lg"></i> 取消
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 对话弹窗 -->
+    <div class="alarm-modal" id="chatModal">
+        <div class="alarm-modal-content" style="max-width: 600px; min-width: 500px; max-height: 80vh; overflow: hidden; animation: none; text-align: left;">
+            <div class="alarm-icon" style="color: var(--primary-color);">
+                <i class="bi bi-chat-dots-fill"></i>
+            </div>
+            <div class="alarm-title" style="color: var(--primary-color);">智能助手</div>
+            
+            <div id="chatMessages" style="height: 300px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                <div style="margin-bottom: 0.5rem;">
+                    <span style="color: #4facfe; font-weight: bold;">助手：</span>
+                    <span>您好！我是智能助手，可以帮您查询生产情况和报警记录。请问有什么可以帮您？</span>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="chatInput" class="form-control" placeholder="请输入问题..." 
+                       onkeypress="if(event.key==='Enter')sendChat()">
+                <button class="btn btn-primary" onclick="sendChat()">
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+            
+            <div style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.7;">
+                <p>可以问我：</p>
+                <ul style="margin: 0; padding-left: 1rem;">
+                    > "今天有几次报警？"</li>
+                    > "出料口A的生产情况"</li>
+                    > "有哪些摄像头在线？"</li>
+                    > "今天有什么异常？"</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -1127,6 +1165,82 @@
         // 关闭管理弹窗
         function closeManage() {
             document.getElementById('manageModal').classList.remove('active');
+        }
+
+        // 打开对话弹窗
+        function openChat() {
+            document.getElementById('chatModal').classList.add('active');
+        }
+
+        // 发送对话
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            // 显示用户消息
+            const messagesDiv = document.getElementById('chatMessages');
+            messagesDiv.innerHTML += `
+                <div style="margin-bottom: 0.5rem; text-align: right;">
+                    <span style="color: #fff; background: var(--primary-color); padding: 0.3rem 0.8rem; border-radius: 12px 12px 0 12px;">${message}</span>
+                </div>
+            `;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            input.value = '';
+            
+            // 显示loading
+            messagesDiv.innerHTML += `
+                <div style="margin-bottom: 0.5rem;" id="chatLoading">
+                    <span style="color: #4facfe; font-weight: bold;">助手：</span>
+                    <span>正在思考...</span>
+                </div>
+            `;
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            
+            // 构建上下文
+            const onlineCount = cameras.filter(c => c.status === 'online').length;
+            const alarmCount = cameras.filter(c => c.alarm_status === 'alarm').length;
+            const dischargeCams = cameras.filter(c => c.analyze_type === 'discharge');
+            
+            const context = `
+当前系统状态：
+- 总摄像头：${cameras.length}个
+- 在线：${onlineCount}个
+- 告警中：${alarmCount}个
+- 出料口摄像头：${dischargeCams.map(c => c.name + '(' + c.location + ')').join('、')}
+
+请根据以上信息回答用户问题。
+            `;
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: message, context: context})
+                });
+                const data = await response.json();
+                
+                // 移除loading
+                document.getElementById('chatLoading')?.remove();
+                
+                // 显示回复
+                messagesDiv.innerHTML += `
+                    <div style="margin-bottom: 0.5rem;">
+                        <span style="color: #4facfe; font-weight: bold;">助手：</span>
+                        <span>${data.reply || '抱歉，我暂时无法回答这个问题。'}</span>
+                    </div>
+                `;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            } catch (e) {
+                document.getElementById('chatLoading')?.remove();
+                messagesDiv.innerHTML += `
+                    <div style="margin-bottom: 0.5rem;">
+                        <span style="color: #4facfe; font-weight: bold;">助手：</span>
+                        <span>抱歉，连接出错。请确保后端服务正在运行。</span>
+                    </div>
+                `;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            }
         }
 
         // 渲染管理列表

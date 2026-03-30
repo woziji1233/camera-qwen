@@ -264,6 +264,59 @@ async def acknowledge_alarm(camera_id: int):
         return {"status": "ok", "message": "告警已确认"}
     raise HTTPException(status_code=404, detail="摄像头不存在")
 
+# 对话请求模型
+class ChatRequest(BaseModel):
+    message: str
+    context: str = ""
+
+@app.post("/api/chat")
+async def chat(request: ChatRequest):
+    """智能对话"""
+    import aiohttp
+    
+    qwen_config = config.get('ai', {}).get('qwen', {})
+    api_key = qwen_config.get('api_key', '')
+    model = qwen_config.get('model', 'qwen-plus')
+    
+    if not api_key:
+        return {"reply": "请先配置千问API Key才能使用对话功能。"}
+    
+    # 构建提示词
+    system_prompt = """你是一个生产车间视频监控系统的智能助手。请根据系统状态信息回答用户问题。
+    - 如果用户问报警情况，请统计并说明
+    - 如果用户问生产情况，请根据摄像头状态分析
+    - 如果不知道的信息，请如实说明
+    - 回答要简洁明了"""
+    
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"{request.context}\n\n用户问题：{request.message}"}
+    ]
+    
+    try:
+        url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": 500
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=payload, headers=headers) as response:
+                if response.status == 200:
+                    result = await response.json()
+                    reply = result['choices'][0]['message']['content']
+                    return {"reply": reply}
+                else:
+                    return {"reply": "API调用失败，请检查配置。"}
+    except Exception as e:
+        logger.error(f"对话API错误: {e}")
+        return {"reply": f"抱歉，处理您的请求时出错：{str(e)}"}
+
 @app.get("/api/alarms/history")
 async def get_alarm_history():
     """获取告警历史"""
