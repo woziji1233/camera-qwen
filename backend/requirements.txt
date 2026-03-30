@@ -1,0 +1,37 @@
+# 生产车间视频监控系统依赖
+
+# Web框架
+fastapi==0.109.0
+uvicorn[standard]==0.27.0
+python-multipart==0.0.6
+
+# 异步HTTP客户端
+aiohttp==3.9.1
+
+# 视频处理
+opencv-python-headless==4.9.0.80
+numpy==1.26.3
+
+# YAML配置
+pyyaml==6.0.1
+
+# WebSocket
+websockets==12.0
+
+# 数据验证
+pydantic==2.5.3
+
+# USB控制 (用于USB声光报警器)
+pyusb==1.2.1
+
+# GPIO (可选,用于硬件告警-树莓派)
+# RPi.GPIO==0.7.1
+
+# 音频播放 (可选)
+pygame==2.5.3
+
+# 语音合成 (可选-语音播报)
+# pyttsx3==3.1
+
+# 千问SDK (可选)
+# dashscope==1.14.1

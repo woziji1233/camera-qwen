@@ -1,0 +1,246 @@
+# 摄像头配置文件
+# 海康威视NVR配置
+nvr:
+  host: "192.168.1.64"  # NVR IP地址
+  port: 554
+  username: "admin"
+  password: "admin123"
+  protocol: "rtsp"
+
+# 摄像头列表 (共25个)
+cameras:
+  # 出料口摄像头 (需要AI分析 + 告警)
+  - id: 1
+    name: "出料口-A"
+    location: "车间A-出料口"
+    rtsp_channel: 1
+    analyze_type: "discharge"  # 出料检测
+    alarm_enabled: true
+    stream_type: "main"  # 主码流
+
+  - id: 2
+    name: "出料口-B"
+    location: "车间B-出料口"
+    rtsp_channel: 2
+    analyze_type: "discharge"
+    alarm_enabled: true
+    stream_type: "main"
+
+  # 普通监控摄像头
+  - id: 3
+    name: "生产工位-1"
+    location: "车间A-工位1"
+    rtsp_channel: 3
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 4
+    name: "生产工位-2"
+    location: "车间A-工位2"
+    rtsp_channel: 4
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 5
+    name: "生产工位-3"
+    location: "车间A-工位3"
+    rtsp_channel: 5
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 6
+    name: "生产工位-4"
+    location: "车间A-工位4"
+    rtsp_channel: 6
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 7
+    name: "生产工位-5"
+    location: "车间A-工位5"
+    rtsp_channel: 7
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 8
+    name: "生产工位-6"
+    location: "车间A-工位6"
+    rtsp_channel: 8
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 9
+    name: "生产工位-7"
+    location: "车间A-工位7"
+    rtsp_channel: 9
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 10
+    name: "生产工位-8"
+    location: "车间A-工位8"
+    rtsp_channel: 10
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 11
+    name: "原料仓库-A"
+    location: "原料仓库-A区"
+    rtsp_channel: 11
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 12
+    name: "原料仓库-B"
+    location: "原料仓库-B区"
+    rtsp_channel: 12
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 13
+    name: "成品仓库-A"
+    location: "成品仓库-A区"
+    rtsp_channel: 13
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 14
+    name: "成品仓库-B"
+    location: "成品仓库-B区"
+    rtsp_channel: 14
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 15
+    name: "包装工位-1"
+    location: "包装区-工位1"
+    rtsp_channel: 15
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 16
+    name: "包装工位-2"
+    location: "包装区-工位2"
+    rtsp_channel: 16
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 17
+    name: "质检工位"
+    location: "质检区"
+    rtsp_channel: 17
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 18
+    name: "通道-主入口"
+    location: "主通道-入口"
+    rtsp_channel: 18
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 19
+    name: "通道-侧门"
+    location: "主通道-侧门"
+    rtsp_channel: 19
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 20
+    name: "配电室"
+    location: "配电室"
+    rtsp_channel: 20
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 21
+    name: "锅炉房"
+    location: "锅炉房"
+    rtsp_channel: 21
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 22
+    name: "车间B-全景"
+    location: "车间B-全景"
+    rtsp_channel: 22
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 23
+    name: "车间C-全景"
+    location: "车间C-全景"
+    rtsp_channel: 23
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 24
+    name: "厂区大门"
+    location: "厂区大门"
+    rtsp_channel: 24
+    analyze_type: "general"
+    alarm_enabled: false
+
+  - id: 25
+    name: "停车场"
+    location: "停车场"
+    rtsp_channel: 25
+    analyze_type: "general"
+    alarm_enabled: false
+
+# AI分析配置
+ai:
+  # 千问API配置 (阿里云百炼)
+  qwen:
+    api_key: "${QWEN_API_KEY}"
+    model: "qwen-vl-plus"  # 视觉理解模型
+    # 视频分析间隔 (秒)
+    analyze_interval: 5
+    # 告警阈值 - 连续N次检测不到物料触发告警
+    discharge_alarm_threshold: 3
+
+  # 告警配置
+  alarm:
+    # 告警器类型: speaker(默认), usb_device, gpio, ptt(语音播报)
+    type: "speaker"
+    enabled: true
+    
+    # USB声光报警器配置
+    usb:
+      enabled: true
+      # 你的USB设备VID:PID (用USB查看工具查看)
+      vendor_id: 0x1234
+      product_id: 0x5678
+    
+    # 声音告警 (speaker模式)
+    sound:
+      enabled: true
+      alarm_file: "/tmp/production-monitor/alerts/alarm.mp3"
+      volume: 0.8
+      # 告警持续时间(秒)
+      duration: 5
+    
+    # 语音播报 (ptt模式，需要USB TTS设备或pyttsx3)
+    voice:
+      enabled: false
+      # TTS引擎: pyttsx3, system, windows
+      engine: "pyttsx3"
+      # 播报语速
+      rate: 150
+    
+    # GPIO告警 (树莓派)
+    light:
+      enabled: false
+      gpio_pin: 18
+      blink_interval: 0.2
+
+# 流媒体服务器配置
+stream:
+  # 使用FLV格式 for Web播放
+  format: "flv"
+  # 推流地址 (可配置自己的流媒体服务器)
+  push_url: "rtmp://localhost:1935/live/"
+  # HLS配置
+  hls:
+    enabled: true
+    output_path: "/tmp/production-monitor/hls"
