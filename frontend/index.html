@@ -612,6 +612,9 @@
             <button class="btn btn-outline-light btn-sm py-0 px-2" onclick="openChat()">
                 <i class="bi bi-chat-dots"></i>
             </button>
+            <button class="btn btn-outline-light btn-sm py-0 px-2" onclick="openAlarmHistory()">
+                <i class="bi bi-exclamation-triangle"></i>
+            </button>
             <button class="btn btn-outline-light btn-sm py-0 px-2" onclick="openManage()">
                 <i class="bi bi-gear"></i>
             </button>
@@ -868,6 +871,23 @@
                     <li>"有哪些摄像头在线？"</li>
                     <li>"今天有什么异常？"</li>
                 </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 告警历史弹窗 -->
+    <div class="alarm-modal" id="alarmHistoryModal">
+        <div class="alarm-modal-content" style="max-width: 600px; min-width: 500px; max-height: 80vh; overflow: hidden; animation: none;">
+            <button onclick="closeAlarmHistory()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <div class="alarm-icon" style="color: var(--danger-color);">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="alarm-title" style="color: var(--danger-color);">告警历史</div>
+            
+            <div id="alarmHistoryList" style="height: 350px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 8px; padding: 1rem;">
+                <div style="text-align: center; opacity: 0.7;">加载中...</div>
             </div>
         </div>
     </div>
@@ -1179,6 +1199,59 @@
         }
 
         // 打开对话弹窗
+        // 打开告警历史
+        async function openAlarmHistory() {
+            document.getElementById('alarmHistoryModal').classList.add('active');
+            await loadAlarmHistory();
+        }
+
+        // 关闭告警历史
+        function closeAlarmHistory() {
+            document.getElementById('alarmHistoryModal').classList.remove('active');
+        }
+
+        // 加载告警历史
+        async function loadAlarmHistory() {
+            try {
+                const res = await fetch('/api/alarms/history');
+                const data = await res.json();
+                
+                const list = document.getElementById('alarmHistoryList');
+                
+                // 合并摄像头信息
+                const historyWithNames = Object.entries(data).map(([camId, info]) => {
+                    const cam = cameras.find(c => c.id === parseInt(camId));
+                    return {
+                        id: camId,
+                        name: cam ? cam.name : '未知',
+                        location: cam ? cam.location : '',
+                        alarm_count: info.alarm_count,
+                        last_alarm: info.last_alarm
+                    };
+                }).sort((a, b) => b.alarm_count - a.alarm_count);
+                
+                if (historyWithNames.length === 0 || historyWithNames.every(h => h.alarm_count === 0)) {
+                    list.innerHTML = '<div style="text-align: center; opacity: 0.7;">暂无告警记录</div>';
+                    return;
+                }
+                
+                list.innerHTML = historyWithNames
+                    .filter(h => h.alarm_count > 0)
+                    .map(h => `
+                        <div style="padding: 0.75rem; background: rgba(220,53,69,0.2); border-radius: 8px; margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: bold;">${h.name}</span>
+                                <span style="background: var(--danger-color); padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">${h.alarm_count}次</span>
+                            </div>
+                            <div style="font-size: 0.8rem; opacity: 0.7; margin-top: 0.3rem;">${h.location}</div>
+                            ${h.last_alarm ? `<div style="font-size: 0.75rem; opacity: 0.6; margin-top: 0.3rem;">最后告警：${new Date(h.last_alarm).toLocaleString()}</div>` : ''}
+                        </div>
+                    `).join('');
+            } catch (e) {
+                document.getElementById('alarmHistoryList').innerHTML = '<div style="text-align: center; opacity: 0.7;">加载失败</div>';
+            }
+        }
+
         function openChat() {
             document.getElementById('chatModal').classList.add('active');
             getCurrentModel();
