@@ -878,10 +878,12 @@
     <!-- 告警历史弹窗 -->
     <div class="alarm-modal" id="alarmHistoryModal">
         <div class="alarm-modal-content" style="max-width: 600px; min-width: 500px; max-height: 80vh; overflow: hidden; animation: none;">
-            <button onclick="closeAlarmHistory()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;">
-                <i class="bi bi-x-lg"></i>
-            </button>
-            <div class="alarm-icon" style="color: var(--danger-color);">
+            <div style="position: absolute; top: 0.5rem; right: 0.5rem; z-index: 10;">
+                <button onclick="closeAlarmHistory()" style="background: rgba(220,53,69,0.8); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: 1rem;">
+                    ✕
+                </button>
+            </div>
+            <div class="alarm-icon" style="color: var(--danger-color); margin-top: 0.5rem;">
                 <i class="bi bi-exclamation-triangle-fill"></i>
             </div>
             <div class="alarm-title" style="color: var(--danger-color);">告警历史</div>
