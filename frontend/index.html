@@ -828,7 +828,10 @@
 
     <!-- 对话弹窗 -->
     <div class="alarm-modal" id="chatModal">
-        <div class="alarm-modal-content" style="max-width: 600px; min-width: 500px; max-height: 80vh; overflow: hidden; animation: none; text-align: left;">
+        <div class="alarm-modal-content" style="max-width: 600px; min-width: 500px; max-height: 80vh; overflow: hidden; animation: none; text-align: left; position: relative;">
+            <button onclick="closeChat()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;">
+                <i class="bi bi-x-lg"></i>
+            </button>
             <div class="alarm-icon" style="color: var(--primary-color);">
                 <i class="bi bi-chat-dots-fill"></i>
             </div>
@@ -1170,6 +1173,10 @@
         // 打开对话弹窗
         function openChat() {
             document.getElementById('chatModal').classList.add('active');
+        }
+
+        function closeChat() {
+            document.getElementById('chatModal').classList.remove('active');
         }
 
         // 发送对话
