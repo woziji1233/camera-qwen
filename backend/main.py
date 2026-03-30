@@ -8,16 +8,20 @@ import sys
 import json
 import asyncio
 import yaml
-import cv2
+try:
+    import cv2
+except ImportError:
+    cv2 = None
 import base64
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Optional
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketConnection
+from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import logging
 
@@ -185,6 +189,19 @@ async def lifespan(app: FastAPI):
     logger.info("系统关闭")
 
 app = FastAPI(title="生产车间监控API", lifespan=lifespan)
+
+# 首页
+FRONTEND_PATH = Path("/tmp/production-monitor/frontend")
+
+@app.get("/")
+async def root():
+    index_file = FRONTEND_PATH / "index.html"
+    if index_file.exists():
+        return FileResponse(str(index_file))
+    return {"message": "生产车间视频监控系统"}
+
+# 静态文件
+app.mount("/static", StaticFiles(directory=str(FRONTEND_PATH)), name="static")
 
 app.add_middleware(
     CORSMiddleware,

@@ -195,7 +195,7 @@ ai:
   
   # 千问API配置 (阿里云百炼)
   qwen:
-    api_key: "${QWEN_API_KEY}"
+    api_key: ""  # 填入你的千问API Key，如：sk-xxx
     model: "qwen-vl-plus"  # 视觉理解模型
     # 视频分析间隔 (秒)
     analyze_interval: 5
@@ -204,7 +204,7 @@ ai:
   
   # DeepSeek API配置
   deepseek:
-    api_key: "${DEEPSEEK_API_KEY}"
+    api_key: ""  # 填入你的DeepSeek API Key，如：sk-xxx
     model: "deepseek-chat"  # 对话模型
     base_url: "https://api.deepseek.com"
 
