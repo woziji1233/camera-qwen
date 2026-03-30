@@ -215,10 +215,10 @@ ai:
     # 声音告警 (speaker模式)
     sound:
       enabled: true
-      alarm_file: "/tmp/production-monitor/alerts/alarm.mp3"
+      alarm_file: "/tmp/production-monitor/alerts/alarm.wav"
       volume: 0.8
       # 告警持续时间(秒)
-      duration: 5
+      duration: 3
     
     # 语音播报 (ptt模式，需要USB TTS设备或pyttsx3)
     voice:
