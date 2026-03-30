@@ -195,7 +195,7 @@ ai:
   
   # 千问API配置 (阿里云百炼)
   qwen:
-    api_key: ""  # 填入你的千问API Key，如：sk-xxx
+    api_key: ""
     model: "qwen-vl-plus"  # 视觉理解模型
     # 视频分析间隔 (秒)
     analyze_interval: 5
