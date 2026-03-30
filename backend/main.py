@@ -278,8 +278,28 @@ async def chat(request: ChatRequest):
     api_key = qwen_config.get('api_key', '')
     model = qwen_config.get('model', 'qwen-plus')
     
-    if not api_key:
-        return {"reply": "请先配置千问API Key才能使用对话功能。"}
+    # 获取默认模型
+    default_model = config.get('ai', {}).get('default_model', 'qwen')
+    qwen_config = config.get('ai', {}).get('qwen', {})
+    deepseek_config = config.get('ai', {}).get('deepseek', {})
+    
+    # 根据选择的模型调用不同的API
+    if default_model == 'deepseek':
+        api_key = deepseek_config.get('api_key', os.getenv('DEEPSEEK_API_KEY', ''))
+        model = deepseek_config.get('model', 'deepseek-chat')
+        
+        if not api_key:
+            return {"reply": "请先配置DeepSeek API Key才能使用对话功能。"}
+        
+        url = "https://api.deepseek.com/chat/completions"
+    else:
+        api_key = qwen_config.get('api_key', os.getenv('QWEN_API_KEY', ''))
+        model = qwen_config.get('model', 'qwen-plus')
+        
+        if not api_key:
+            return {"reply": "请先配置千问API Key才能使用对话功能。"}
+        
+        url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
     
     # 构建提示词
     system_prompt = """你是一个生产车间视频监控系统的智能助手。请根据系统状态信息回答用户问题。
@@ -294,7 +314,6 @@ async def chat(request: ChatRequest):
     ]
     
     try:
-        url = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json"
@@ -310,12 +329,44 @@ async def chat(request: ChatRequest):
                 if response.status == 200:
                     result = await response.json()
                     reply = result['choices'][0]['message']['content']
-                    return {"reply": reply}
+                    return {"reply": reply, "model": default_model}
                 else:
-                    return {"reply": "API调用失败，请检查配置。"}
+                    return {"reply": f"API调用失败，请检查{default_model.upper()} API Key配置。"}
     except Exception as e:
         logger.error(f"对话API错误: {e}")
         return {"reply": f"抱歉，处理您的请求时出错：{str(e)}"}
+
+@app.get("/api/models")
+async def get_models():
+    """获取可用的AI模型"""
+    return {
+        "current": config.get('ai', {}).get('default_model', 'qwen'),
+        "available": ["qwen", "deepseek"]
+    }
+
+@app.post("/api/models")
+async def set_model(model: str):
+    """切换AI模型"""
+    if model not in ['qwen', 'deepseek']:
+        return {"error": "无效的模型"}
+    
+    # 修改配置
+    if 'ai' not in config:
+        config['ai'] = {}
+    config['ai']['default_model'] = model
+    
+    # 保存到文件
+    with open(CONFIG_PATH, 'r', encoding='utf-8') as f:
+        yaml_data = yaml.safe_load(f)
+    
+    if 'ai' not in yaml_data:
+        yaml_data['ai'] = {}
+    yaml_data['ai']['default_model'] = model
+    
+    with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
+        yaml.dump(yaml_data, f, allow_unicode=True)
+    
+    return {"status": "ok", "current": model}
 
 @app.get("/api/alarms/history")
 async def get_alarm_history():

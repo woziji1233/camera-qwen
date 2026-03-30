@@ -190,6 +190,9 @@ cameras:
 
 # AI分析配置
 ai:
+  # 默认使用哪个模型: qwen / deepseek
+  default_model: "qwen"
+  
   # 千问API配置 (阿里云百炼)
   qwen:
     api_key: "${QWEN_API_KEY}"
@@ -198,6 +201,12 @@ ai:
     analyze_interval: 5
     # 告警阈值 - 连续N次检测不到物料触发告警
     discharge_alarm_threshold: 3
+  
+  # DeepSeek API配置
+  deepseek:
+    api_key: "${DEEPSEEK_API_KEY}"
+    model: "deepseek-chat"  # 对话模型
+    base_url: "https://api.deepseek.com"
 
   # 告警配置
   alarm:

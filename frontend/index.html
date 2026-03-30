@@ -852,13 +852,21 @@
                 </button>
             </div>
             
+            <div style="margin-top: 1rem; display: flex; align-items: center; gap: 1rem;">
+                <span style="font-size: 0.8rem; opacity: 0.7;">AI模型：</span>
+                <select id="modelSelect" class="form-control form-control-sm" style="width: 120px;" onchange="switchModel(this.value)">
+                    <option value="qwen">千问</option>
+                    <option value="deepseek">DeepSeek</option>
+                </select>
+            </div>
+            
             <div style="margin-top: 1rem; font-size: 0.8rem; opacity: 0.7;">
                 <p>可以问我：</p>
                 <ul style="margin: 0; padding-left: 1rem;">
-                    > "今天有几次报警？"</li>
-                    > "出料口A的生产情况"</li>
-                    > "有哪些摄像头在线？"</li>
-                    > "今天有什么异常？"</li>
+                    <li>"今天有几次报警？"</li>
+                    <li>"出料口A的生产情况"</li>
+                    <li>"有哪些摄像头在线？"</li>
+                    <li>"今天有什么异常？"</li>
                 </ul>
             </div>
         </div>
@@ -1173,10 +1181,38 @@
         // 打开对话弹窗
         function openChat() {
             document.getElementById('chatModal').classList.add('active');
+            getCurrentModel();
         }
 
         function closeChat() {
             document.getElementById('chatModal').classList.remove('active');
+        }
+
+        // 获取当前模型
+        async function getCurrentModel() {
+            try {
+                const res = await fetch('/api/models');
+                const data = await res.json();
+                document.getElementById('modelSelect').value = data.current;
+            } catch (e) {}
+        }
+
+        // 切换模型
+        async function switchModel(model) {
+            try {
+                await fetch('/api/models', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({model: model})
+                });
+                // 显示切换提示
+                const messagesDiv = document.getElementById('chatMessages');
+                messagesDiv.innerHTML += `
+                    <div style="margin-bottom: 0.5rem; font-size: 0.8rem; opacity: 0.7;">
+                        <span>已切换到${model === 'qwen' ? '千问' : 'DeepSeek'}模型</span>
+                    </div>
+                `;
+            } catch (e) {}
         }
 
         // 发送对话
