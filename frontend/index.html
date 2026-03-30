@@ -917,9 +917,13 @@
             ws.onmessage = function(event) {
                 const data = JSON.parse(event.data);
                 if (data.type === 'camera_update') {
-                    cameras = data.cameras;
-                    renderCameraGrid();
-                    updateStats();
+                    // 如果管理弹窗打开，不重新渲染网格
+                    const manageModal = document.getElementById('manageModal');
+                    if (!manageModal.classList.contains('active')) {
+                        cameras = data.cameras;
+                        renderCameraGrid();
+                        updateStats();
+                    }
 
                     // 检查告警
                     const alarmCams = cameras.filter(c => c.alarm_status === 'alarm');
