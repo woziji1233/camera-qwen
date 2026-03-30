@@ -1129,7 +1129,7 @@
         function renderManageList() {
             const list = document.getElementById('manageCameraList');
             list.innerHTML = cameras.map((cam, index) => `
-                <div class="info-card" style="margin-bottom: 0.5rem; padding: 0.75rem;">
+                <div class="info-card" id="camera_row_${cam.id}" style="margin-bottom: 0.5rem; padding: 0.75rem;">
                     <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                         <span style="font-weight: bold; min-width: 30px;">${cam.id}</span>
                         <input type="text" class="form-control form-control-sm" style="width: 120px;" 
@@ -1148,7 +1148,7 @@
                         </select>
                         <input type="number" class="form-control form-control-sm" style="width: 70px;" 
                                id="cam_channel_${cam.id}" value="${cam.rtsp_channel}" placeholder="通道">
-                        <button class="btn btn-danger btn-sm" onclick="deleteCamera(${cam.id})">
+                        <button class="btn btn-danger btn-sm" onclick="deleteCamera(${cam.id}, event)">
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
@@ -1173,10 +1173,13 @@
         }
 
         // 删除摄像头
-        function deleteCamera(cameraId) {
+        function deleteCamera(cameraId, event) {
+            event.stopPropagation();
             if (confirm('确定要删除这个摄像头吗？')) {
                 cameras = cameras.filter(c => c.id !== cameraId);
-                renderManageList();
+                // 直接删除DOM元素，不重新渲染整个列表
+                const elem = document.getElementById('camera_row_' + cameraId);
+                if (elem) elem.remove();
             }
         }
 
